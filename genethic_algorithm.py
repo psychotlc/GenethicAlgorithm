@@ -128,10 +128,10 @@ class GenethicAlgorithm:
             self.average_fitness_values.append(average_fitness)
 
             print(  f"Поколение: {generation_count}\
-                    \nПопуляция: {self.population}\
-                    \nМаксимальное значение: {max_fitness}\
-                    \nМинимальное значение: {min_fitness}\
-                    \nСреднее значение: {average_fitness}\n\n")
+                    \nПопуляция: {[[round(gen, 5) for gen in individual] for individual in self.population]}\
+                    \nМаксимальное значение: {round(max_fitness, 5)}\
+                    \nМинимальное значение: {round(min_fitness, 5)}\
+                    \nСреднее значение: {round(average_fitness, 5)}\n\n")
             if generation_count <= 10 or generation_count % 10 == 0:
                 self.visualize_population(generation_count)
             
