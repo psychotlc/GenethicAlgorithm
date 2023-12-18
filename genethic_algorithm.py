@@ -1,16 +1,42 @@
 import random
 from math import exp
 from copy import copy
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.ticker import LinearLocator
+from matplotlib import cm
+import os
+import imageio
+
+def fitness_function_graphic():
+    fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
+    x = np.arange(-2, 2, 0.01)
+    y = np.arange(-2, 2, 0.01)
+    x, y = np.meshgrid(x, y)
+    z = np.exp(-1 * x**2 -1 * y**2 )# z = np.cos(x)*np.cos(y)
+    surf = ax.plot_surface(x, y, z, cmap=cm.coolwarm, linewidth=0, antialiased=False)
+    ax.set_zlim(-1.01, 1.01)
+    ax.zaxis.set_major_locator(LinearLocator(10))
+    # A StrMethodFormatter is used automatically
+    ax.zaxis.set_major_formatter('{x:.02f}')
+
+    # Add a color bar which maps values to colors.
+    fig.colorbar(surf, shrink=0.5, aspect=5)
+
+    plt.show()
+
 
 class GenethicAlgorithm:
 
-    def __init__(self, population_size, n_vector, limit_value_bottom, limit_value_top, p_mutation):
+    def __init__(self, population_size, n_vector, limit_value_bottom, limit_value_top, p_mutation, bounds):
 
         self.POPULATION_SIZE        = population_size
         self.N_VECTOR               = n_vector
         self.LIMIT_VALUE_BOTTOM     = limit_value_bottom
         self.LIMIT_VALUE_TOP        = limit_value_top
         self.P_MUTATION             = p_mutation
+
+        self.bounds_ = bounds
         
         self.minimum_fitness_values = []
         self.maximum_fitness_values = []
@@ -106,3 +132,34 @@ class GenethicAlgorithm:
                     \nМаксимальное значение: {max_fitness}\
                     \nМинимальное значение: {min_fitness}\
                     \nСреднее значение: {average_fitness}\n\n")
+            if generation_count <= 10 or generation_count % 10 == 0:
+                self.visualize_population(generation_count)
+            
+    def visualize_population(self, generation_number):
+        if not os.path.exists('results/'):
+            os.makedirs('results/')
+
+        x0, x1 = self.bounds_[:2]
+        x = np.arange(x0, x1 + 0.1, 0.1)
+        y0, y1 = self.bounds_[2:]
+        y = np.arange(y0, y1 + 0.1, 0.1)
+        x, y = np.meshgrid(x, y)
+        z = np.exp(-1 * x**2 -1 * y**2)
+
+        plt.title(f"Поколение {generation_number}.")
+        plt.xlabel('x')
+        plt.ylabel('y')
+        plt.pcolormesh(x, y, z, cmap=cm.plasma)
+        for i in range(len(self.population)):
+            x_p, y_p = self.population[i][0], self.population[i][1]
+            plt.plot(x_p, y_p, marker='D', linestyle='', color='lime')
+        plt.savefig('results/' + str(generation_number) + '.png')
+        plt.clf()
+            
+
+    def create_gif_visualisation(self):
+        results = []
+        filenames = os.listdir("results/")
+        for filename in sorted(filenames, key=lambda x: int(os.path.splitext(x)[0])):
+            results.append(imageio.imread("results/" + filename))
+        imageio.mimsave('final_result.gif', results, duration=0.2)
